@@ -22,9 +22,7 @@ config :nerves,
 
 keys =
   [
-    Path.join([System.user_home!(), ".ssh", "id_rsa.pub"]),
-    Path.join([System.user_home!(), ".ssh", "id_ecdsa.pub"]),
-    Path.join([System.user_home!(), ".ssh", "id_ed25519.pub"])
+    Path.join([System.user_home!(), ".ssh", "nerves_rsa.pub"])
   ]
   |> Enum.filter(&File.exists?/1)
 
