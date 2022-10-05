@@ -30,7 +30,7 @@ defmodule RclexOnNerves.MixProject do
   defp deps do
     [
       # Dependencies for all targets
-      {:nerves, "~> 1.7.16 or ~> 1.8.0", runtime: false},
+      {:nerves, "~> 1.7.16 or ~> 1.8", runtime: false},
       {:shoehorn, "~> 0.9.1"},
       {:ring_logger, "~> 0.8.5"},
       {:toolshed, "~> 0.2.26"},
