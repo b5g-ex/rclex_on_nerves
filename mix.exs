@@ -34,6 +34,9 @@ defmodule RclexOnNerves.MixProject do
       {:shoehorn, "~> 0.9.1"},
       {:ring_logger, "~> 0.8.5"},
       {:toolshed, "~> 0.2.26"},
+      {:rclex,
+       git: "https://github.com/rclex/rclex.git",
+       branch: "feature-add_tasks_for_ros2_resource-pojiro"},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.13.0", targets: @all_targets},

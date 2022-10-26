@@ -26,6 +26,8 @@ config :nerves, source_date_epoch: "1664934221"
 
 config :logger, backends: [RingLogger]
 
+config :rclex, ros2_message_types: ["std_msgs/msg/String"]
+
 if Mix.target() == :host do
   import_config "host.exs"
 else
