@@ -1,32 +1,27 @@
 # RclexOnNerves
 
-**TODO: Add description**
+## How to try
 
-## Targets
+```
+# 1. clone
+$ git clone git@github.com:b5g-ex/rclex_on_nerves.git
+$ cd rclex_on_nerves
 
-Nerves applications produce images for hardware targets based on the
-`MIX_TARGET` environment variable. If `MIX_TARGET` is unset, `mix` builds an
-image that runs on the host (e.g., your laptop). This is useful for executing
-logic tests, running utilities, and debugging. Other targets are represented by
-a short name like `rpi3` that maps to a Nerves system image for that platform.
-All of this logic is in the generated `mix.exs` and may be customized. For more
-information about targets see:
+# 2. deps.get
+$ mix deps.get
 
-https://hexdocs.pm/nerves/targets.html#content
+# 3. prepare ros2 resources
+$ mix rclex.prep.ros2 --arch arm64v8 --ros2-distro foxy
 
-## Getting Started
+# 4. copy them to rootfs_overlay
+$ bash copy_ros2_resources.sh
 
-To start your Nerves app:
-  * `export MIX_TARGET=my_target` or prefix every command with
-    `MIX_TARGET=my_target`. For example, `MIX_TARGET=rpi3`
-  * Install dependencies with `mix deps.get`
-  * Create firmware with `mix firmware`
-  * Burn to an SD card with `mix burn`
+# 5. generate message type codes
+$ mix rclex.gen.msgs --from rootfs_overlay/usr/share
 
-## Learn more
-
-  * Official docs: https://hexdocs.pm/nerves/getting-started.html
-  * Official website: https://nerves-project.org/
-  * Forum: https://elixirforum.com/c/nerves-forum
-  * Discussion Slack elixir-lang #nerves ([Invite](https://elixir-slackin.herokuapp.com/))
-  * Source: https://github.com/nerves-project/nerves
+# 6 create fw and burn
+$ export MIX_TARGET=rpi4
+$ export ROS_DIR=$PWD/rootfs_overlay/usr
+$ mix firmware
+$ mix burn
+```
