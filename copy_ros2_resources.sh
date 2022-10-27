@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -rf rootfs_overlay/usr
+rm -rf rootfs_overlay/usr/*
 mkdir -p rootfs_overlay/usr
 
 # copy ROS 2 resources
