@@ -37,6 +37,7 @@ defmodule RclexOnNerves.MixProject do
       {:rclex,
        git: "https://github.com/rclex/rclex.git",
        branch: "feature-add_tasks_for_ros2_resource-pojiro"},
+      {:muontrap, "~> 1.0"},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.13.0", targets: @all_targets},
