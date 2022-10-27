@@ -44,4 +44,14 @@ $ mix burn
 1. copy zenoh-bridge-dds binary under rootfs_overlay/opt.
 2. set zenoh-router ip address to config/config.exs
 
-ex) config :rclex_on_nerves, zenoh_router_ip: "*.*.*.*"
+ex) config :rclex_on_nerves, zenoh_router_ip: "\*.\*.\*.\*"
+
+### NOTE
+
+Nerves同士の時刻同期が取れていないと以下のログが出る。
+
+> 2022-10-27T11:10:34Z ERROR zenoh::net::routing::pubsub] Error treating timestamp for received Data (incoming timestamp from 9874FE3FBB724868BDFC9299B37E7E66 exceeding delta 500ms is rejected: 2022-10-27T11:14:04.452741976Z vs. now: 2022-10-27T11:10:34.024079553Z): drop it!
+
+publisher がメッセージに（おそらく）付与した時刻と subscriber が受け取った時刻を比較して500msec 以上の開きがある場合は drop していると考えられる。
+
+Nerves で dateコマンドを打ったら時刻ずれが解消し（NTPサーバへの問い合わせが走った？）、drop が起きなくなった。
