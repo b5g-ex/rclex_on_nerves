@@ -5,6 +5,8 @@ defmodule RclexOnNerves.Application do
 
   use Application
 
+  require Logger
+
   @impl true
   def start(_type, _args) do
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -35,10 +37,23 @@ defmodule RclexOnNerves.Application do
       # Children for all targets except host
       # Starts a worker by calling: RclexOnNerves.Worker.start_link(arg)
       # {RclexOnNerves.Worker, arg},
-    ]
+    ] ++ zenoh_bridge_dds()
   end
 
   def target() do
     Application.get_env(:rclex_on_nerves, :target)
+  end
+
+  @spec zenoh_bridge_dds() :: list()
+  def zenoh_bridge_dds() do
+    zenoh_bridge_dds = "/opt/zenoh-bridge-dds"
+    ip = Application.get_env(:rclex_on_nerves, :zenoh_router_ip)
+
+    if File.exists?(zenoh_bridge_dds) and not is_nil(ip) do
+      Logger.info("start zenoh-bridge-dds, server is #{ip}")
+      [{MuonTrap.Daemon, [zenoh_bridge_dds, ["-e", "tcp/#{ip}:7447"]]}]
+    else
+      []
+    end
   end
 end

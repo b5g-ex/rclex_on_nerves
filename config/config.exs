@@ -9,6 +9,7 @@ import Config
 Application.start(:nerves_bootstrap)
 
 config :rclex_on_nerves, target: Mix.target()
+config :rclex_on_nerves, zenoh_router_ip: "*.*.*.*"
 
 # Customize non-Elixir parts of the firmware. See
 # https://hexdocs.pm/nerves/advanced-configuration.html for details.
