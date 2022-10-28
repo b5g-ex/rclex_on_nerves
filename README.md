@@ -39,12 +39,14 @@ $ mix firmware
 $ mix burn
 ```
 
-## How to set zenoh-bridge-dds
+## How to use zenoh-bridge-dds
 
-1. copy zenoh-bridge-dds binary under rootfs_overlay/opt.
-2. set zenoh-router ip address to config/config.exs
+1. copy zenoh-bridge-dds binary under `rootfs_overlay/opt` directory.
+2. configure zenoh-router ip address to config/config.exs
 
-ex) config :rclex_on_nerves, zenoh_router_ip: "\*.\*.\*.\*"
+```
+config :rclex_on_nerves, zenoh_router_ip: "*.*.*.*"
+```
 
 ### NOTE
 
