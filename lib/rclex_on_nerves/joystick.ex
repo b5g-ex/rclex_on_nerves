@@ -2,6 +2,9 @@ defmodule RclexOnNerves.Joystick do
   @i2c_name "i2c-1"
   @i2c_addr 0x08
 
+  @coeff_lin 10.0
+  @coeff_ang 10.0
+
   alias Circuits.I2C
   use Bitwise
 
@@ -9,8 +12,10 @@ defmodule RclexOnNerves.Joystick do
     {:ok, i2c_ref} = I2C.open(@i2c_name)
 
     context = Rclex.rclexinit()
-    {:ok, node} = Rclex.ResourceServer.create_node(context, 'joystick')
-    {:ok, publisher} = Rclex.Node.create_publisher(node, 'StdMsgs.Msg.String', 'pose')
+    {:ok, node} = Rclex.ResourceServer.create_node(context, 'teleop_joy')
+
+    {:ok, publisher} =
+      Rclex.Node.create_publisher(node, 'GeometryMsgs.Msg.Twist', 'turtle1/cmd_vel')
 
     {:ok, timer} =
       Rclex.ResourceServer.create_timer(
@@ -29,15 +34,11 @@ defmodule RclexOnNerves.Joystick do
   end
 
   defp pub_callback({publisher, ref}) do
-    msg = Rclex.Msg.initialize('StdMsgs.Msg.String')
+    msg = Rclex.Msg.initialize('GeometryMsgs.Msg.Twist')
+    twist = read_twist(ref)
 
-    data = read_xy(ref)
+    Rclex.Msg.set(msg, twist, 'GeometryMsgs.Msg.Twist')
 
-    str = "Hello World from Rclex! #{data}"
-    msg_struct = %Rclex.StdMsgs.Msg.String{data: String.to_charlist(str)}
-    Rclex.Msg.set(msg, msg_struct, 'StdMsgs.Msg.String')
-
-    IO.puts("Rclex: Publishing: #{str}")
     Rclex.Publisher.publish([publisher], [msg])
   end
 
@@ -46,12 +47,15 @@ defmodule RclexOnNerves.Joystick do
     ref
   end
 
-  def read_xy(ref) do
-    x = read_word(ref, 0x30)
-    y = read_word(ref, 0x32)
-    data = "#{x} : #{y}"
-    IO.puts(data)
-    data
+  def read_twist(ref) do
+    linear = read_word(ref, 0x30) / @coeff_lin
+    angular = read_word(ref, 0x32) / @coeff_ang
+    IO.puts("x: #{linear}, y: #{angular}")
+
+    %Rclex.GeometryMsgs.Msg.Twist{
+      linear: %Rclex.GeometryMsgs.Msg.Vector3{x: linear, y: 0.0, z: 0.0},
+      angular: %Rclex.GeometryMsgs.Msg.Vector3{x: 0.0, y: 0.0, z: angular}
+    }
   end
 
   defp read_word(ref, register) do
