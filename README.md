@@ -42,11 +42,11 @@ $ mix burn
 ## How to use zenoh-bridge-dds
 
 1. copy zenoh-bridge-dds binary under `rootfs_overlay/opt` directory.
-2. configure zenoh-router ip address to config/config.exs
-
+2. uncomment line of zenoh-router config/config.exs
 ```
-config :rclex_on_nerves, zenoh_router_ip: "*.*.*.*"
+config :rclex_on_nerves, zenoh_router_ip: System.get_env("ZENOH_ROUTER_IP")
 ```
+3. Set ENV "ZENOH_ROUTER_IP"
 
 ### NOTE
 
