@@ -9,7 +9,7 @@ defmodule RclexOnNerves.MixProject do
     [
       app: @app,
       version: @version,
-      elixir: "~> 1.11",
+      elixir: "~> 1.12",
       archives: [nerves_bootstrap: "~> 1.11"],
       start_permanent: Mix.env() == :prod,
       deps: deps(),
