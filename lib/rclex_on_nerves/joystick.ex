@@ -1,14 +1,14 @@
 defmodule RclexOnNerves.Joystick do
   use GenServer
-  use Bitwise
+  import Bitwise
   require Logger
   alias Circuits.I2C
 
   @i2c_name "i2c-1"
   @i2c_addr 0x08
 
-  @coeff_lin 10.0
-  @coeff_ang 10.0
+  @coeff_lin 30.0
+  @coeff_ang 30.0
 
   defstruct i2c_ref: nil,
             init_lin: 0.0,
@@ -101,6 +101,7 @@ defmodule RclexOnNerves.Joystick do
   defp read_twist(i2c_ref, init_lin, init_ang) do
     linear = (read_word(i2c_ref, 0x30) - init_lin) / @coeff_lin
     angular = (read_word(i2c_ref, 0x32) - init_ang) / @coeff_ang
+    IO.puts("Linear: #{linear}, Angular:#{angular}")
 
     %Rclex.GeometryMsgs.Msg.Twist{
       linear: %Rclex.GeometryMsgs.Msg.Vector3{x: linear, y: 0.0, z: 0.0},
