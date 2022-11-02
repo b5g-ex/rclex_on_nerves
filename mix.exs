@@ -9,7 +9,7 @@ defmodule RclexOnNerves.MixProject do
     [
       app: @app,
       version: @version,
-      elixir: "~> 1.11",
+      elixir: "~> 1.12",
       archives: [nerves_bootstrap: "~> 1.11"],
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -34,9 +34,7 @@ defmodule RclexOnNerves.MixProject do
       {:shoehorn, "~> 0.9.1"},
       {:ring_logger, "~> 0.8.5"},
       {:toolshed, "~> 0.2.26"},
-      {:rclex,
-       git: "https://github.com/rclex/rclex.git",
-       branch: "feature-add_tasks_for_ros2_resource-pojiro"},
+      {:rclex, "~> 0.8.0"},
       {:muontrap, "~> 1.0"},
 
       # Dependencies for all targets except :host

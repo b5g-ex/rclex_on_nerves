@@ -9,6 +9,7 @@ import Config
 Application.start(:nerves_bootstrap)
 
 config :rclex_on_nerves, target: Mix.target()
+# Set IP address for Zenoh router if you want to connect it
 config :rclex_on_nerves, zenoh_router_ip: System.get_env("ZENOH_ROUTER_IP")
 
 # Customize non-Elixir parts of the firmware. See
