@@ -1,132 +1,228 @@
 # RclexOnNerves
 
-## How to try
+This repository has been prepared for the demonstration in our presentation at [Code BEAM America 2022](https://codebeamamerica.com).
 
-以下の手順は
+- Presentation Title: [On the way to achieve autonomous node communication in the Elixir ecosystem](https://codebeamamerica.com/participants/hideki-takase/)
+  - [Slide on SpeakerDeck](https://speakerdeck.com/takasehideki/codebeamamerica-20221103)
 
-* docker コンテナの中で行わないで下さい。
-  * `mix rclex.prep.ros2` は docker コマンドで copy するため
-* ホストマシンに ROS 2 がインストールされていなくても実行できます。
+You will experience a world of autonomous node communication (across the Pacific Ocean) made possible by the combination of [Rclex](https://github.com/rclex/rclex), [Nerves](https://www.nerves-project.org/), and [Zenoh](https://zenoh.io/). 
+**Please try it out!!**
+
+## Notice
+
+It should be noted that do not perform the following steps inside a docker container, since the docker command is used to copy the necessary directory in `mix rclex.prep.ros2`.  
+Also, they can be operated even if ROS 2 is not installed on the host machine.
+
+And also, we assume that an RSA key pair named `nerves_rsa` is prepared.
+
+## How to Install Rclex on Nerves (page 14 on the slide)
+
+### Build steps
 
 ```
-# 1. clone
-$ git clone git@github.com:b5g-ex/rclex_on_nerves.git
-$ cd rclex_on_nerves
+# 1. clone our repository
+git clone https://github.com/b5g-ex/rclex_on_nerves.git
+cd rclex_on_nerves/
 
 # 2. deps.get
-$ mix deps.get
+mix deps.get
 
 # 3. prepare ros2 resources
-$ mix rclex.prep.ros2 --arch arm64v8 --ros2-distro foxy
+mix rclex.prep.ros2 --arch arm64v8 --ros2-distro foxy
 
 # 4. copy them to rootfs_overlay
-$ bash copy_ros2_resources.sh
+bash copy_ros2_resources.sh
 
-# 5. generate message type codes
-$ mix rclex.gen.msgs --from rootfs_overlay/usr/share
+# 5. generate codes of message types for topic comm. 
+mix rclex.gen.msgs --from rootfs_overlay/usr/share
 
-# 6 create fw and burn
-$ export MIX_TARGET=rpi4
-$ export ROS_DIR=$PWD/rootfs_overlay/usr
+# 6. create fw, and burn (or, upload)
+export MIX_TARGET=rpi4
+export ROS_DIR=$PWD/rootfs_overlay/usr
+mix firmware
+mix burn    # or, mix upload
+```
 
+If the following message occurs when executing `mix firmware`, you need to execute `mix deps.get` again to download the latest version of nerves_system_rpi4.
+
+```
 $ mix firmware
 # The following Nerves packages need to be build:
 
   nerves_system_rpi4
 
-が表示されたら、 mix deps.get して下さい。これは nerves_system_rpi4 の 最近の artifact をダウンロードしていないために表示されます。
-
-$ mix burn
 ```
 
-## How to use zenoh-bridge-dds
+### Execution example
 
-1. copy zenoh-bridge-dds binary under `rootfs_overlay/opt` directory.
-2. uncomment line of zenoh-router config/config.exs
+#### simple pub/sub for String message
+
+publish String message:
+
 ```
-config :rclex_on_nerves, zenoh_router_ip: System.get_env("ZENOH_ROUTER_IP")
-```
-3. Set ENV "ZENOH_ROUTER_IP"
+iex()> context = Rclex.rclexinit                         
+#Reference<0.314340768.268566529.132643>
 
-### NOTE
+iex()> publisher = RclexOnNerves.start_publisher(context)
+{'talker0', 'chatter', :pub}
 
-Nerves同士の時刻同期が取れていないと以下のログが出る。
-
-> 2022-10-27T11:10:34Z ERROR zenoh::net::routing::pubsub] Error treating timestamp for received Data (incoming timestamp from 9874FE3FBB724868BDFC9299B37E7E66 exceeding delta 500ms is rejected: 2022-10-27T11:14:04.452741976Z vs. now: 2022-10-27T11:10:34.024079553Z): drop it!
-
-publisher がメッセージに（おそらく）付与した時刻と subscriber が受け取った時刻を比較して500msec 以上の開きがある場合は drop していると考えられる。
-
-Nerves で dateコマンドを打ったら時刻ずれが解消し（NTPサーバへの問い合わせが走った？）、drop が起きなくなった。
-
-## turtle_sim demo
-参照 : [zenoh-plugin-dds demo](https://github.com/eclipse-zenoh/zenoh-plugin-dds#2-hosts-with-an-intermediate-zenoh-router-in-the-cloud)
-
-### zenoh router
-クラウドVM等のグローバルIPの取れる環境を用意し、TCPポート7447を解放しておく
-#### install rust
-  ```
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
+iex()> RclexOnNerves.publish(publisher)
+:ok
 ```
 
-#### install clang
-  ```
-  sudo apt install clang
-  ```
-#### source clone
-githubから[zenoh(v0.6.0-dev)](https://github.com/eclipse-zenoh/zenoh/releases/tag/0.6.0-dev)をcloneする。(※ 現時点の最新はv0.6.0-beta.1だが、まだ動作できていないため、動作実績のある0.6.0-devで解説する)
-  ```
-  git clone https://github.com/eclipse-zenoh/zenoh.git -b 0.6.0-dev
-  cd zenoh
-  ```
-#### build
-  ```
-  cargo build --release --all-targets
-  ```
-./target/release/下にビルド済みのバイナリが生成される。
-#### execute zenohd
-zenohd(zenoh router)の起動は単にzenohdを実行するだけでよい。
+subscribe String message:
+
 ```
-./target/release/zenohd
+iex()> context = Rclex.rclexinit                         
+#Reference<0.314340768.268566529.132947>
+
+iex()> context = RclexOnNerves.start_subscriber(context)
+[:ok]
 ```
 
-### host pc (ROS2 foxy)
-#### install rust and clang
-前項のzenoh routerのセットアップと同様に、rust, clangをインストールする。
+#### Teleop for turtlesim_node
 
-#### source clone
-githubから[zenoh(v0.6.0-dev)](https://github.com/eclipse-zenoh/zenoh/releases/tag/0.6.0-dev)をcloneする。(※ 現時点の最新はv0.6.0-beta.1だが、まだ動作できていないため、動作実績のある0.6.0-devで解説する)
-  ```
-  git clone git clone https://github.com/eclipse-zenoh/zenoh-plugin-dds.git -b 0.6.0-dev
-  cd zenoh
-  ```
-#### build
-  ```
-  cargo build --release -p zenoh-bridge-dds
-  ```
-./target/release/下にビルド済みのバイナリが生成される。
-#### execute zenohd
-zenoh-bridge-ddsはzenoh routerのIPアドレス(下記xxx部)を指定して実行する。
+You need to prepare [Grove Base Hat](https://www.seeedstudio.com/Grove-Base-Hat-for-Raspberry-Pi.html) and [Grove - Thumb Joystick](https://wiki.seeedstudio.com/Grove-Thumb_Joystick/), and attach them to Raspberry Pi 4. 
+Older HATs may have different I2C address, in which case change the value of `@i2c_addr` to `0x04` in `/lib/rclex_on_nerves/joystick.ex`.
+
+Please execute the following to Teleop "turtlesim_node".
+
 ```
-./target/release/zenoh-bridge-dds -e tcp/XXX.XXX.XXX.XXX:7447
+iex()> RclexOnNerves.Joystick.start_link                 
+{:ok, #PID<0.1225.0>}
+
+iex()> RclexOnNerves.Joystick.start_publish              
+%RclexOnNerves.Joystick{
+  i2c_ref: #Reference<0.314340768.268566539.124422>,
+  init_lin: 502,
+  init_ang: 495,
+  context: #Reference<0.314340768.268828673.169521>,
+  node: 'teleop_joy0',
+  publisher: {'teleop_joy0', 'turtle1/cmd_vel', :pub},
+  timer: "continus_timer/Timer"
+}
+Linear: 0.06666666666666667, Angular:0.03333333333333333
+Linear: 0.03333333333333333, Angular:0.0
+Linear: 0.06666666666666667, Angular:0.03333333333333333
+Linear: 0.03333333333333333, Angular:0.0
+<cont.>
 ```
-#### launch turtlesim
-別ターミナルを開き、turtlesimを起動する
+
+You can operate the behavior of `turtlesim_node` on the host with ROS 2 Foxy by the JoyStick.
+
 ```
 ros2 run turtlesim turtlesim_node
 ```
 
-### nerves
-#### build
-- nervesのビルドの前に、Raspberry Pi向けにビルドしたzenoh-bridge-ddsを用意する必要ある。
-Nervesではなく、UbuntuかRaspbianをインストールしたRaspberry Pi環境で、
-host pcと同様の手順でzenoh-bridge-ddsをビルドし、zenoh-bridge-ddsのバイナリを開発環境にコピーしておく。
-- 上記のHow to tryに沿ってmix firmwareまでの手順を行う
-- zenoh-bridge-ddsバイナリを本リポジトリの/rootfs_overlay/opt/ にコピーし、実行権限を付与する。
-- mix firmware & mix burn (or mix upload)
+## How to Use Zenoh with Rclex on Nerves (page 18 on the slide)
 
-#### launch demo
-- ssh でNervesに接続する
-- \> RclexOnNerves.Joystick.start_link
-- \> RclexOnNerves.Joystick.start_publish
-- Joystickを操作すると、host pc上のカメが動く
+To try this section, the following environments are required to prepare.
+
+- a server that can take a global IP ("aa.bbb.ccc.d" for example in the following explanation) and release TCP port 7447, such as a cloud VM (we use Azure VM), used as the Zenoh router (`zenohd`)
+- a host machine with ROS 2 Foxy, running `zenoh-bridge-dds`
+- a Raspberry Pi 4 for Rclex on Nerves, running `zenoh-bridge-dds`
+
+Currently, we have confirmed the operation with the source code build of the **v0.6.0-dev tag**.
+Although the latest release _v0.6.0-beta.1_ has pre-built binaries available, we could not confirm proper operation with them.  
+Therefore, we need to clone the source code and build it by Clang and Rust/Cargo for now.
+
+Also, the following steps assume that the previous section "How to Install Rclex on Nerves" has been completed.
+
+### Build steps for rclex_on_nerves
+
+First of all, we need to build zenoh-bridge-dds v0.6.0-dev targeting aarch64 platform for Raspberry Pi 4. The most simplest way is to prepare Ubuntu OS on your Raspberry Pi 4, and execute the following steps.
+
+```
+# install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+
+# install clang
+sudo apt install clang
+
+# clone repo and build from source
+git clone git clone https://github.com/eclipse-zenoh/zenoh-plugin-dds.git -b 0.6.0-dev
+cd zenoh
+cargo build --release -p zenoh-bridge-dds
+```
+
+And then, please scp the entire directory `zenoh-plugin-dds/` to your development machine for Nerves.
+
+```
+# 1. scp from RPi4 on Ubuntu
+scp -r ubuntu@ubuntu:~/zenoh-plugin-dds .
+
+# 2. copy `zenoh-bridge-dds` binary under `./rootfs_overlay/opt/`
+bash copy_zenoh_resources.sh
+
+# 3. Set `${ZENOH_ROUTER_IP}` for your server
+export ZENOH_ROUTER_IP=aa.bbb.ccc.d
+
+# 4. create fw, and upload
+mix firmware
+mix upload
+```
+
+The execution example is same as in the previous section.
+For example, the following will Teleop "turtlesim_node".
+
+```
+iex()> RclexOnNerves.Joystick.start_link                 
+iex()> RclexOnNerves.Joystick.start_publish              
+```
+
+### Prepare Zenoh router and ROS 2 (DDS) client
+
+#### Zenoh router on Cloud VM
+
+Prepare an environment that can take a global IP, such as a cloud VM (we use Azure VM), and release TCP port 7447.
+
+Please clone the repository and build it from the source code by Clang and Rust/Cargo.
+
+```
+git clone https://github.com/eclipse-zenoh/zenoh.git -b 0.6.0-dev
+cd zenoh
+cargo build --release --all-targets
+```
+
+The built binary will be located under `./target/release/`.
+To start zenohd (zenoh router), simply run `zenohd`.
+
+```
+./target/release/zenohd
+```
+
+Please also refer to [zenoh-plugin-dds demo](https://github.com/eclipse-zenoh/zenoh-plugin-dds#2-hosts-with-an-intermediate-zenoh-router-in-the-cloud) for more details.
+
+#### Zenoh client on the host with ROS 2 Foxy
+
+Please clone the repository and build it from the source code by Clang and Rust/Cargo.
+
+```
+git clone git clone https://github.com/eclipse-zenoh/zenoh-plugin-dds.git -b 0.6.0-dev
+cd zenoh
+cargo build --release -p zenoh-bridge-dds
+```
+
+The built binary will be located under `./target/release/`.
+To start zenoh-bridge-dds, the IP address of Zenoh router (global IP of cloud VM) is required as the argument.
+
+```
+./target/release/zenoh-bridge-dds -e tcp/aa.bbb.ccc.d:7447
+```
+
+For example of the execution, please bringup `turtlesim_node` in the other terminal.
+
+```
+ros2 run turtlesim turtlesim_node
+```
+
+### NOTE
+
+If the time synchronization between Nerves and other machines is not maintained, the following log will appear.
+
+> 2022-10-27T11:10:34Z ERROR zenoh::net::routing::pubsub] Error treating timestamp for received Data (incoming timestamp from 9874FE3FBB724868BDFC9299B37E7E66 exceeding delta 500ms is rejected: 2022-10-27T11:14:04.452741976Z vs. now: 2022-10-27T11:10:34.024079553Z): drop it!
+
+We guess that if there is a gap of 500 msec or more between the time given to the message by the publisher (probably) and the time received by the subscriber, the message is considered to be dropped.
+
+After we executed `date` command on Nerves, the time discrepancy was resolved (querying the NTP server?), and the drop did not occur anymore. The drop does not occur anymore.
