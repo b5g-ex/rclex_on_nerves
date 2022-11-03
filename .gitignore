@@ -15,3 +15,6 @@
 
 # If the VM crashes, it generates a dump, let's ignore it too.
 erl_crash.dump
+
+# The directory where zenoh-plugin-dds will be cloned and built from source code
+/zenoh-plugin-dds/
