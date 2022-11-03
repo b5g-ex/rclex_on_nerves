@@ -42,11 +42,11 @@ $ mix burn
 ## How to use zenoh-bridge-dds
 
 1. copy zenoh-bridge-dds binary under `rootfs_overlay/opt` directory.
-2. configure zenoh-router ip address to config/config.exs
-
+2. uncomment line of zenoh-router config/config.exs
 ```
-config :rclex_on_nerves, zenoh_router_ip: "*.*.*.*"
+config :rclex_on_nerves, zenoh_router_ip: System.get_env("ZENOH_ROUTER_IP")
 ```
+3. Set ENV "ZENOH_ROUTER_IP"
 
 ### NOTE
 
@@ -57,3 +57,76 @@ Nerves同士の時刻同期が取れていないと以下のログが出る。
 publisher がメッセージに（おそらく）付与した時刻と subscriber が受け取った時刻を比較して500msec 以上の開きがある場合は drop していると考えられる。
 
 Nerves で dateコマンドを打ったら時刻ずれが解消し（NTPサーバへの問い合わせが走った？）、drop が起きなくなった。
+
+## turtle_sim demo
+参照 : [zenoh-plugin-dds demo](https://github.com/eclipse-zenoh/zenoh-plugin-dds#2-hosts-with-an-intermediate-zenoh-router-in-the-cloud)
+
+### zenoh router
+クラウドVM等のグローバルIPの取れる環境を用意し、TCPポート7447を解放しておく
+#### install rust
+  ```
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+```
+
+#### install clang
+  ```
+  sudo apt install clang
+  ```
+#### source clone
+githubから[zenoh(v0.6.0-dev)](https://github.com/eclipse-zenoh/zenoh/releases/tag/0.6.0-dev)をcloneする。(※ 現時点の最新はv0.6.0-beta.1だが、まだ動作できていないため、動作実績のある0.6.0-devで解説する)
+  ```
+  git clone https://github.com/eclipse-zenoh/zenoh.git -b 0.6.0-dev
+  cd zenoh
+  ```
+#### build
+  ```
+  cargo build --release --all-targets
+  ```
+./target/release/下にビルド済みのバイナリが生成される。
+#### execute zenohd
+zenohd(zenoh router)の起動は単にzenohdを実行するだけでよい。
+```
+./target/release/zenohd
+```
+
+### host pc (ROS2 foxy)
+#### install rust and clang
+前項のzenoh routerのセットアップと同様に、rust, clangをインストールする。
+
+#### source clone
+githubから[zenoh(v0.6.0-dev)](https://github.com/eclipse-zenoh/zenoh/releases/tag/0.6.0-dev)をcloneする。(※ 現時点の最新はv0.6.0-beta.1だが、まだ動作できていないため、動作実績のある0.6.0-devで解説する)
+  ```
+  git clone git clone https://github.com/eclipse-zenoh/zenoh-plugin-dds.git -b 0.6.0-dev
+  cd zenoh
+  ```
+#### build
+  ```
+  cargo build --release -p zenoh-bridge-dds
+  ```
+./target/release/下にビルド済みのバイナリが生成される。
+#### execute zenohd
+zenoh-bridge-ddsはzenoh routerのIPアドレス(下記xxx部)を指定して実行する。
+```
+./target/release/zenoh-bridge-dds -e tcp/XXX.XXX.XXX.XXX:7447
+```
+#### launch turtlesim
+別ターミナルを開き、turtlesimを起動する
+```
+ros2 run turtlesim turtlesim_node
+```
+
+### nerves
+#### build
+- nervesのビルドの前に、Raspberry Pi向けにビルドしたzenoh-bridge-ddsを用意する必要ある。
+Nervesではなく、UbuntuかRaspbianをインストールしたRaspberry Pi環境で、
+host pcと同様の手順でzenoh-bridge-ddsをビルドし、zenoh-bridge-ddsのバイナリを開発環境にコピーしておく。
+- 上記のHow to tryに沿ってmix firmwareまでの手順を行う
+- zenoh-bridge-ddsバイナリを本リポジトリの/rootfs_overlay/opt/ にコピーし、実行権限を付与する。
+- mix firmware & mix burn (or mix upload)
+
+#### launch demo
+- ssh でNervesに接続する
+- \> RclexOnNerves.Joystick.start_link
+- \> RclexOnNerves.Joystick.start_publish
+- Joystickを操作すると、host pc上のカメが動く

@@ -5,19 +5,6 @@ defmodule RclexOnNerves do
 
   require Logger
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> RclexOnNerves.hello
-      :world
-
-  """
-  def hello do
-    :world
-  end
-
   def start_subscriber(context) do
     {:ok, sub_node} = Rclex.ResourceServer.create_node(context, 'listener')
 
