@@ -117,8 +117,16 @@ ros2 run turtlesim turtlesim_node
 ```
 
 ### nerves
-#### zenoh-bridgeの準備
-nervesのビルドの前に、Raspberry Pi向けにビルドしたzenoh-bridge-ddsを用意する必要ある。
+#### build
+- nervesのビルドの前に、Raspberry Pi向けにビルドしたzenoh-bridge-ddsを用意する必要ある。
 Nervesではなく、UbuntuかRaspbianをインストールしたRaspberry Pi環境で、
 host pcと同様の手順でzenoh-bridge-ddsをビルドし、zenoh-bridge-ddsのバイナリを開発環境にコピーしておく。
+- 上記のHow to tryに沿ってmix firmwareまでの手順を行う
+- zenoh-bridge-ddsバイナリを本リポジトリの/rootfs_overlay/opt/ にコピーし、実行権限を付与する。
+- mix firmware & mix burn (or mix upload)
 
+#### launch demo
+- ssh でNervesに接続する
+- \> RclexOnNerves.Joystick.start_link
+- \> RclexOnNerves.Joystick.start_publish
+- Joystickを操作すると、host pc上のカメが動く
