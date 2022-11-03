@@ -62,7 +62,7 @@ defmodule RclexOnNerves.Joystick do
       )
 
     spawn(fn ->
-      Process.sleep(100_000)
+      Process.sleep(30_000)
       GenServer.stop(__MODULE__)
     end)
 
