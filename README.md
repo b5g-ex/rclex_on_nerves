@@ -4,8 +4,9 @@ This repository has been prepared for the demonstration in our presentation at [
 
 - Presentation Title: [On the way to achieve autonomous node communication in the Elixir ecosystem](https://codebeamamerica.com/participants/hideki-takase/)
   - [Slide on SpeakerDeck](https://speakerdeck.com/takasehideki/codebeamamerica-20221103)
+  - Note: some operations on this repository have been improved from the presentation
 
-You will experience a world of autonomous node communication (across the Pacific Ocean) made possible by the combination of [Rclex](https://github.com/rclex/rclex), [Nerves](https://www.nerves-project.org/), and [Zenoh](https://zenoh.io/). 
+You will experience a world of [autonomous node communication (across the Pacific Ocean)](https://twitter.com/takasehideki/status/1588521053311365121) made possible by the combination of [Rclex](https://github.com/rclex/rclex), [Nerves](https://www.nerves-project.org/), and [Zenoh](https://zenoh.io/). 
 **Please try it out!!**
 
 ## Notice
