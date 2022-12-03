@@ -16,7 +16,7 @@ Also, they can be operated even if ROS 2 is not installed on the host machine.
 
 And also, we assume that an RSA key pair named `nerves_rsa` is prepared.
 
-## How to Install Rclex on Nerves (page 14 on the slide)
+## How to Install Rclex on Nerves
 
 ### Build steps
 
@@ -26,32 +26,19 @@ git clone https://github.com/b5g-ex/rclex_on_nerves.git
 cd rclex_on_nerves/
 
 # 2. deps.get
+export MIX_TARGET=rpi4
 mix deps.get
 
 # 3. prepare ros2 resources
-mix rclex.prep.ros2 --arch arm64v8 --ros2-distro foxy
+export ROS_DISTRO=foxy
+mix rclex.prep.ros2
 
-# 4. copy them to rootfs_overlay
-bash copy_ros2_resources.sh
+# 4. generate codes of message types for topic comm.
+mix rclex.gen.msgs
 
-# 5. generate codes of message types for topic comm. 
-mix rclex.gen.msgs --from rootfs_overlay/usr/share
-
-# 6. create fw, and burn (or, upload)
-export MIX_TARGET=rpi4
-export ROS_DIR=$PWD/rootfs_overlay/usr
+# 5. create fw, and burn (or, upload)
 mix firmware
 mix burn    # or, mix upload
-```
-
-If the following message occurs when executing `mix firmware`, you need to execute `mix deps.get` again to download the latest version of nerves_system_rpi4.
-
-```
-$ mix firmware
-# The following Nerves packages need to be build:
-
-  nerves_system_rpi4
-
 ```
 
 ### Execution example
@@ -83,8 +70,7 @@ iex()> context = RclexOnNerves.start_subscriber(context)
 
 #### Teleop for turtlesim_node
 
-You need to prepare [Grove Base Hat](https://www.seeedstudio.com/Grove-Base-Hat-for-Raspberry-Pi.html) and [Grove - Thumb Joystick](https://wiki.seeedstudio.com/Grove-Thumb_Joystick/), and attach them to Raspberry Pi 4. 
-Older HATs may have different I2C address, in which case change the value of `@i2c_addr` to `0x04` in `/lib/rclex_on_nerves/joystick.ex`.
+You need to prepare [Grove Base Hat](https://www.seeedstudio.com/Grove-Base-Hat-for-Raspberry-Pi.html) and [Grove - Thumb Joystick](https://wiki.seeedstudio.com/Grove-Thumb_Joystick/), and attach them to Raspberry Pi 4. Note that older HATs may have different I2C address, in which case change the value of `@i2c_addr` to `0x04` in `/lib/rclex_on_nerves/joystick.ex`.
 
 Please execute the following to Teleop "turtlesim_node".
 
@@ -115,7 +101,7 @@ You can operate the behavior of `turtlesim_node` on the host with ROS 2 Foxy by 
 ros2 run turtlesim turtlesim_node
 ```
 
-## How to Use Zenoh with Rclex on Nerves (page 18 on the slide)
+## How to Use Zenoh with Rclex on Nerves
 
 To try this section, the following environments are required to prepare.
 
