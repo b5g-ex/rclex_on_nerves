@@ -140,7 +140,7 @@ And then, please scp the entire directory `zenoh-plugin-dds/` to your developmen
 scp -r ubuntu@ubuntu:~/zenoh-plugin-dds .
 
 # 2. copy `zenoh-bridge-dds` binary under `./rootfs_overlay/opt/`
-bash copy_zenoh_resources.sh
+cp -f zenoh-plugin-dds/target/release/zenoh-bridge-dds rootfs_overlay/opt
 
 # 3. Set `${ZENOH_ROUTER_IP}` for your server
 export ZENOH_ROUTER_IP=aa.bbb.ccc.d
