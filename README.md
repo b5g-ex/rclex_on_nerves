@@ -25,7 +25,6 @@ And also, we assume that an RSA key pair named `nerves_rsa` is prepared.
 (This project requires an docker environment that can execute arm64 binary. If you want to run on other platforms (x86_64), Please install qemu follow this:
 
 sudo apt-get install qemu binfmt-support qemu-user-static
-docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
 # 1. clone our repository
 git clone https://github.com/b5g-ex/rclex_on_nerves.git
