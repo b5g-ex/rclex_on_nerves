@@ -9,10 +9,24 @@ This repository has been prepared for the demonstration in our presentation at [
 You will experience a world of [autonomous node communication (across the Pacific Ocean)](https://twitter.com/takasehideki/status/1588521053311365121) made possible by the combination of [Rclex](https://github.com/rclex/rclex), [Nerves](https://www.nerves-project.org/), and [Zenoh](https://zenoh.io/). 
 **Please try it out!!**
 
+## Preliminaries
+
+- Equipments
+  - [Raspberry Pi 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) (`${MIX_TARGET}=rpi4`)
+  - [Grove Base Hat for Raspberry Pi](https://wiki.seeedstudio.com/Grove_Base_Hat_for_Raspberry_Pi/)
+  - [Grove - Thumb Joystick](https://wiki.seeedstudio.com/Grove-Thumb_Joystick/)
+  - Internet connectivity with Ethernet
+- Software environment
+  - Elixir 1.14.0-otp-25
+  - Erlang/OTP 25.0.4
+  - Docker
+    - Please install [Docker Desktop](https://docs.docker.com/desktop/) or [Docker Engine](https://docs.docker.com/engine/), and start it first.
+    - Rclex on Nerves will deploy an docker container for arm64 arch. If you want to operate this project by Docker Engine on other platforms (x86_64), you need to install qemu as the follows: `sudo apt-get install qemu binfmt-support qemu-user-static`
+
 ## Notice
 
 It should be noted that do not perform the following steps inside a docker container, since the docker command is used to copy the necessary directory in `mix rclex.prep.ros2`.  
-Also, they can be operated even if ROS 2 is not installed on the host machine.
+Once again, they can be operated even if ROS 2 is not installed on the host machine!
 
 And also, we assume that an RSA key pair named `nerves_rsa` is prepared.
 
@@ -21,11 +35,6 @@ And also, we assume that an RSA key pair named `nerves_rsa` is prepared.
 ### Build steps
 
 ```
-# (Option) setup multi-arch emulator for docker 
-(This project requires an docker environment that can execute arm64 binary. If you want to run on other platforms (x86_64), Please install qemu follow this:
-
-sudo apt-get install qemu binfmt-support qemu-user-static
-
 # 1. clone our repository
 git clone https://github.com/b5g-ex/rclex_on_nerves.git
 cd rclex_on_nerves/
