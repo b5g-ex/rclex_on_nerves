@@ -34,7 +34,7 @@ defmodule RclexOnNerves.MixProject do
       {:shoehorn, "~> 0.9.1"},
       {:ring_logger, "~> 0.8.5"},
       {:toolshed, "~> 0.2.26"},
-      {:rclex, "~> 0.8.0"},
+      {:rclex, "~> 0.8.2"},
       {:muontrap, "~> 1.0"},
 
       # Dependencies for all targets except :host

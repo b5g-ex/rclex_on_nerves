@@ -4,18 +4,33 @@ This repository has been prepared for the demonstration in our presentation at [
 
 - Presentation Title: [On the way to achieve autonomous node communication in the Elixir ecosystem](https://codebeamamerica.com/participants/hideki-takase/)
   - [Slide on SpeakerDeck](https://speakerdeck.com/takasehideki/codebeamamerica-20221103)
+  - Note: some operations on this repository have been improved from the presentation
 
-You will experience a world of autonomous node communication (across the Pacific Ocean) made possible by the combination of [Rclex](https://github.com/rclex/rclex), [Nerves](https://www.nerves-project.org/), and [Zenoh](https://zenoh.io/). 
+You will experience a world of [autonomous node communication (across the Pacific Ocean)](https://twitter.com/takasehideki/status/1588521053311365121) made possible by the combination of [Rclex](https://github.com/rclex/rclex), [Nerves](https://www.nerves-project.org/), and [Zenoh](https://zenoh.io/). 
 **Please try it out!!**
+
+## Preliminaries
+
+- Equipments
+  - [Raspberry Pi 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) (`${MIX_TARGET}=rpi4`)
+  - [Grove Base Hat for Raspberry Pi](https://wiki.seeedstudio.com/Grove_Base_Hat_for_Raspberry_Pi/)
+  - [Grove - Thumb Joystick](https://wiki.seeedstudio.com/Grove-Thumb_Joystick/)
+  - Internet connectivity with Ethernet
+- Software environment
+  - Elixir 1.14.0-otp-25
+  - Erlang/OTP 25.0.4
+  - Docker
+    - Please install [Docker Desktop](https://docs.docker.com/desktop/) or [Docker Engine](https://docs.docker.com/engine/), and start it first.
+    - Rclex on Nerves will deploy an docker container for arm64 arch. If you want to operate this project by Docker Engine on other platforms (x86_64), you need to install qemu as the follows: `sudo apt-get install qemu binfmt-support qemu-user-static`
 
 ## Notice
 
 It should be noted that do not perform the following steps inside a docker container, since the docker command is used to copy the necessary directory in `mix rclex.prep.ros2`.  
-Also, they can be operated even if ROS 2 is not installed on the host machine.
+Once again, they can be operated even if ROS 2 is not installed on the host machine!
 
 And also, we assume that an RSA key pair named `nerves_rsa` is prepared.
 
-## How to Install Rclex on Nerves (page 14 on the slide)
+## How to Install Rclex on Nerves
 
 ### Build steps
 
@@ -25,32 +40,19 @@ git clone https://github.com/b5g-ex/rclex_on_nerves.git
 cd rclex_on_nerves/
 
 # 2. deps.get
+export MIX_TARGET=rpi4
 mix deps.get
 
 # 3. prepare ros2 resources
-mix rclex.prep.ros2 --arch arm64v8 --ros2-distro foxy
+export ROS_DISTRO=foxy
+mix rclex.prep.ros2
 
-# 4. copy them to rootfs_overlay
-bash copy_ros2_resources.sh
+# 4. generate codes of message types for topic comm.
+mix rclex.gen.msgs
 
-# 5. generate codes of message types for topic comm. 
-mix rclex.gen.msgs --from rootfs_overlay/usr/share
-
-# 6. create fw, and burn (or, upload)
-export MIX_TARGET=rpi4
-export ROS_DIR=$PWD/rootfs_overlay/usr
+# 5. create fw, and burn (or, upload)
 mix firmware
 mix burn    # or, mix upload
-```
-
-If the following message occurs when executing `mix firmware`, you need to execute `mix deps.get` again to download the latest version of nerves_system_rpi4.
-
-```
-$ mix firmware
-# The following Nerves packages need to be build:
-
-  nerves_system_rpi4
-
 ```
 
 ### Execution example
@@ -82,8 +84,7 @@ iex()> context = RclexOnNerves.start_subscriber(context)
 
 #### Teleop for turtlesim_node
 
-You need to prepare [Grove Base Hat](https://www.seeedstudio.com/Grove-Base-Hat-for-Raspberry-Pi.html) and [Grove - Thumb Joystick](https://wiki.seeedstudio.com/Grove-Thumb_Joystick/), and attach them to Raspberry Pi 4. 
-Older HATs may have different I2C address, in which case change the value of `@i2c_addr` to `0x04` in `/lib/rclex_on_nerves/joystick.ex`.
+You need to prepare [Grove Base Hat](https://www.seeedstudio.com/Grove-Base-Hat-for-Raspberry-Pi.html) and [Grove - Thumb Joystick](https://wiki.seeedstudio.com/Grove-Thumb_Joystick/), and attach them to Raspberry Pi 4. Note that older HATs may have different I2C address, in which case change the value of `@i2c_addr` to `0x04` in `/lib/rclex_on_nerves/joystick.ex`.
 
 Please execute the following to Teleop "turtlesim_node".
 
@@ -114,7 +115,7 @@ You can operate the behavior of `turtlesim_node` on the host with ROS 2 Foxy by 
 ros2 run turtlesim turtlesim_node
 ```
 
-## How to Use Zenoh with Rclex on Nerves (page 18 on the slide)
+## How to Use Zenoh with Rclex on Nerves
 
 To try this section, the following environments are required to prepare.
 
@@ -153,7 +154,7 @@ And then, please scp the entire directory `zenoh-plugin-dds/` to your developmen
 scp -r ubuntu@ubuntu:~/zenoh-plugin-dds .
 
 # 2. copy `zenoh-bridge-dds` binary under `./rootfs_overlay/opt/`
-bash copy_zenoh_resources.sh
+cp -f zenoh-plugin-dds/target/release/zenoh-bridge-dds rootfs_overlay/opt
 
 # 3. Set `${ZENOH_ROUTER_IP}` for your server
 export ZENOH_ROUTER_IP=aa.bbb.ccc.d
