@@ -78,10 +78,11 @@ iex()> RclexOnNerves.publish(publisher)
 subscribe String message:
 
 ```
+iex()> RingLogger.attach
 iex()> context = Rclex.rclexinit                         
 #Reference<0.314340768.268566529.132947>
 
-iex()> context = RclexOnNerves.start_subscriber(context)
+iex()> subscriber = RclexOnNerves.start_subscriber(context)
 [:ok]
 ```
 
