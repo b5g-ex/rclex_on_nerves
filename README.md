@@ -23,6 +23,9 @@ You will experience a world of [autonomous node communication (across the Pacifi
     - Please install [Docker Desktop](https://docs.docker.com/desktop/) or [Docker Engine](https://docs.docker.com/engine/), and start it first.
     - Rclex on Nerves will deploy an docker container for arm64 arch. If you want to operate this project by Docker Engine on other platforms (x86_64), you need to install qemu as the follows: `sudo apt-get install qemu binfmt-support qemu-user-static`
 
+This repository is developed and maintained exclusively for `rpi4`.
+If you want to try this repository on other boards, please refer to [this section](https://github.com/rclex/rclex/blob/main/USE_ON_NERVES.md#supported-targets) about other supported targets that can operate Rclex on Nerves.
+
 ## Notice
 
 It should be noted that do not perform the following steps inside a docker container, since the docker command is used to copy the necessary directory in `mix rclex.prep.ros2`.  
@@ -45,7 +48,7 @@ mix deps.get
 
 # 3. prepare ros2 resources
 export ROS_DISTRO=foxy
-mix rclex.prep.ros2
+mix rclex.prep.ros2 --arch arm64v8
 
 # 4. generate codes of message types for topic comm.
 mix rclex.gen.msgs
